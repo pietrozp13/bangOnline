@@ -1,0 +1,22 @@
+{
+  "name": "bangonline",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pietrozp13/bangOnline.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pietrozp13/bangOnline/issues"
+  },
+  "homepage": "https://github.com/pietrozp13/bangOnline#readme",
+  "dependencies": {
+    "express": "4.15.2"
+  }
+}
