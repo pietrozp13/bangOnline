@@ -14,27 +14,19 @@ var io = require('socket.io')(http);
     7 players = [1,2,2,7,7,7,9]
 */
 
+var allCards = require('./cards')
+
 var allPlayers = []
 
-var allCards = require('./cards')
+var allCardsPlayers = {}
+
+var cardsPlay
 
 const allGamePlayers = {
     "players4": [1,7,7,9],
     "players5": [1,2,7,7,9],
     "players6": [1,2,7,7,7,9],
     "players7": [1,2,2,7,7,7,9]
-}
-
-const playerType = {
-    id: "abc12345",
-    characterType: "1",
-    hand: [
-        {
-            type: "disposable", // disposable or usable
-            descripiton: "pistola vulcanic",
-            mira: 1 // 1,2,3,4,5, null,
-        }
-    ]
 }
 
 
@@ -46,13 +38,21 @@ const getCharacters = () => {
 
 io.on('connection', function(socket){
 
-    socket.on('sendReadyStart', (id)=>{
-        console.log("id user", id)
-        allPlayers.push(id)
+    socket.on('sendReadyStart', ({id, name}) => {
+        const publicData = {
+            name: name,
+            id: id,
+            alive: true,
+            charatersType: null,
+            tableCards: [],
+            lifes: null,
+        }
+
+        allPlayers.push(publicData)
     });
 
 
-    socket.on('sendReadyStartMaster', () =>{
+    socket.on('sendReadyStartMaster', () => {
         const ramdomCharaters = getCharacters()
         let cards = allCards.sort(() => Math.random() - 0.5);
 
@@ -60,12 +60,11 @@ io.on('connection', function(socket){
         allPlayers = allPlayers.map((element, index) => {
             io.sockets.sockets[element.id].emit("user charater", ramdomCharaters[index])
             return {
+                ...element,
                 id: element.id,
-                characterType: ramdomCharaters[index]
+                lifes: ramdomCharaters[index] === 1 ? 5 : 4
             }
         });
-
-        console.log(cards.length,cards.length)
 
         allPlayers.map((element, index) => {
             let myCards = []
@@ -76,13 +75,46 @@ io.on('connection', function(socket){
                 cards.shift()
             }
 
-            console.log(myCards)
+            allCardsPlayers = {
+                ...allCardsPlayers,
+                [element.name]: myCards
+            }
             io.sockets.sockets[element.id].emit("user cards", myCards)
         });
 
+        cardsPlay = cards
 
-        console.log(cards.length,cards.length)
+
+        // start Game
+        io.emit('AllGameData', allPlayers);
     });
+
+
+    socket.on('debug', () => {
+        io.emit('debugC', {
+            allPlayers,
+            allCardsPlayers,
+            cardsPlay
+        });
+    });
+
+    socket.on('startGame', function(msg){
+        console.log("msg recebida", msg)
+        io.emit('message', msg);
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     socket.on('message', function(msg){
@@ -98,6 +130,11 @@ io.on('connection', function(socket){
     // ------------
     socket.on('disconnect', function(){
         console.log('Disconnected!!!');
+        var allPlayers = []
+
+        var allCardsPlayers = {}
+
+        var cardsPlay
   });
 });
 
