@@ -54,11 +54,15 @@ io.on('connection', function(socket){
 
     socket.on('sendReadyStartMaster', () => {
         const ramdomCharaters = getCharacters()
+        let firstPlayer
         let cards = allCards.sort(() => Math.random() - 0.5);
 
         console.log(allPlayers)
         allPlayers = allPlayers.map((element, index) => {
             io.sockets.sockets[element.id].emit("user charater", ramdomCharaters[index])
+            if (ramdomCharaters[index] === 1) {
+                firstPlayer = element.id
+            }
             return {
                 ...element,
                 id: element.id,
@@ -84,9 +88,13 @@ io.on('connection', function(socket){
 
         cardsPlay = cards
 
-
         // start Game
         io.emit('AllGameData', allPlayers);
+
+
+        io.emit("playerTurn", {
+            playerID: firstPlayer
+        })
     });
 
 
@@ -98,11 +106,21 @@ io.on('connection', function(socket){
         });
     });
 
-    socket.on('startGame', function(msg){
-        console.log("msg recebida", msg)
-        io.emit('message', msg);
-    });
+    socket.on('handlePassTurn', ({ playerID }) => {
+        
+        let currentIndexPlayer = allPlayers.findIndex((item)=> item.id === playerID)
+ 
+        
+        if (currentIndexPlayer === allPlayers.length - 1) {
+            currentIndexPlayer = 0
+        } else {
+            currentIndexPlayer++
+        }
 
+        io.emit("playerTurn", {
+            playerID: allPlayers[currentIndexPlayer].id
+        })
+    });
 
 
 
