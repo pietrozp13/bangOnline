@@ -61,7 +61,6 @@ io.on("connection", function(socket) {
     let firstPlayer;
     let cards = allCards.sort(() => Math.random() - 0.5);
 
-    console.log(allPlayers);
     allPlayers = allPlayers.map((element, index) => {
       io.sockets.sockets[element.id].emit(
         "user charater",
@@ -126,7 +125,70 @@ io.on("connection", function(socket) {
   });
 
   socket.on("Use Cart", data => {
-    console.log("dados use card", data);
+    let fromPlayer;
+    let toPlayer;
+    allPlayers.forEach(player => {
+      if (player.id === data.fromPlayer) {
+        fromPlayer = player;
+      }
+      if (player.id === data.toPlayer) {
+        toPlayer = player;
+      }
+    });
+
+    const oldFromUserCards = allCardsPlayers[fromPlayer.name];
+
+    const newFromUserCards = oldFromUserCards.filter(
+      card => card.id !== data.card.id
+    );
+
+    allCardsPlayers[fromPlayer.name] = newFromUserCards;
+
+    io.sockets.sockets[fromPlayer.id].emit("user cards", newFromUserCards);
+
+    console.log("card name", data.card);
+
+    io.emit("playerTurnUseCardInfos", {
+      type: "useAttack",
+      card: data.card,
+      fromPlayer: fromPlayer.name,
+      toPlayer: toPlayer.name
+    });
+
+    io.sockets.sockets[toPlayer.id].emit("reciveAttack", {
+      card: data.card,
+      fromPlayer: fromPlayer.name,
+      toPlayer: toPlayer.name
+    });
+
+    // emit
+  });
+
+  socket.on("Descart Cart", data => {
+    let fromPlayer;
+    allPlayers.forEach(player => {
+      if (player.id === data.fromPlayer) {
+        fromPlayer = player;
+      }
+    });
+
+    const oldFromUserCards = allCardsPlayers[fromPlayer.name];
+
+    const newFromUserCards = oldFromUserCards.filter(
+      card => card.id !== data.card.id
+    );
+
+    allCardsPlayers[fromPlayer.name] = newFromUserCards;
+
+    io.sockets.sockets[fromPlayer.id].emit("user cards", newFromUserCards);
+
+    io.emit("playerTurnUseCardInfos", {
+      type: "descart",
+      card: data.card,
+      fromPlayer: fromPlayer.name
+    });
+
+    // emit
   });
 
   /*
