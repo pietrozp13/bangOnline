@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/pietrozp13/bangOnline#readme",
   "dependencies": {
-    "express": "4.15.2"
+    "express": "4.17.3"
   }
 }
